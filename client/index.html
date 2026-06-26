@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BOMB DEFUSAL</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- タイトル画面 -->
+  <div class="screen" id="title-screen">
+    <h1>💣 BOMB DEFUSAL</h1>
+    <p class="subtitle">協力して爆弾を解除せよ</p>
+    <button id="btn-create">ルームを作成する</button>
+    <div class="join-box">
+      <input type="text" id="input-room" placeholder="ルームコード" maxlength="6" />
+      <button id="btn-join">参加</button>
+    </div>
+    <p id="room-info"></p>
+  </div>
+
+  <!-- ロール選択画面 -->
+  <div class="screen hidden" id="role-screen">
+    <h2>ロールを選択</h2>
+    <button id="btn-role-a">💣 爆弾担当（A）</button>
+    <button id="btn-role-b">📖 マニュアル担当（B）</button>
+    <p id="role-info"></p>
+  </div>
+
+  <!-- ゲーム画面（A/B共通コンテナ。中身はJSで切替）-->
+  <div class="screen hidden" id="game-screen">
+    <div class="hud">
+      <span id="hud-timer">⏱ 05:00</span>
+      <span id="hud-mistakes">ミス: 0/3</span>
+      <span id="hud-room"></span>
+    </div>
+    <div id="game-body"></div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div class="screen hidden" id="result-screen">
+    <h1 id="result-title"></h1>
+    <p id="result-detail"></p>
+    <button onclick="location.reload()">タイトルへ戻る</button>
+  </div>
+
+  <script src="js/socket.js"></script>
+  <script src="js/bomb-ui.js"></script>
+  <script src="js/manual-ui.js"></script>
+  <script>
+    Socket.connect();
+
+    const screens = {
+      title: document.getElementById("title-screen"),
+      role: document.getElementById("role-screen"),
+      game: document.getElementById("game-screen"),
+      result: document.getElementById("result-screen"),
+    };
+    function show(name) {
+      Object.values(screens).forEach((s) => s.classList.add("hidden"));
+      screens[name].classList.remove("hidden");
+    }
+
+    let myRole = null;
+
+    document.getElementById("btn-create").onclick = () => Socket.send("room:create");
+    document.getElementById("btn-join").onclick = () => {
+      const roomId = document.getElementById("input-room").value.toUpperCase();
+      if (roomId) Socket.send("room:join", { roomId });
+    };
+    document.getElementById("btn-role-a").onclick = () => Socket.send("role:select", { role: "A" });
+    document.getElementById("btn-role-b").onclick = () => Socket.send("role:select", { role: "B" });
+
+    Socket.on("room:created", (p) => {
+      document.getElementById("room-info").textContent =
+        `ルームコード: ${p.roomId} （相手にこのコードを伝えてください）`;
+    });
+    Socket.on("room:joined", (p) => {
+      if (p.players >= 2) show("role");
+    });
+    Socket.on("role:confirmed", (p) => {
+      document.getElementById("role-info").textContent =
+        `あなたは ${p.role} を選択。相手の選択を待っています...`;
+    });
+    Socket.on("game:start", (p) => {
+      myRole = p.role;
+      document.getElementById("hud-room").textContent = "ROOM: " + (document.getElementById("input-room").value.toUpperCase() || "—");
+      show("game");
+      const body = document.getElementById("game-body");
+      if (myRole === "A") {
+        BombUI.render(body, p.data);   // 爆弾操作画面
+      } else {
+        ManualUI.render(body, p.data); // マニュアル画面
+      }
+      updateHud(p.state);
+    });
+
+    Socket.on("puzzle:result", (p) => {
+      updateHud(p.state);
+      if (myRole === "A") BombUI.onResult(p);
+    });
+
+    // 毎秒のタイマー同期
+    Socket.on("game:state", (p) => {
+      updateHud(p.state);
+    });
+
+    Socket.on("game:clear", (p) => {
+      show("result");
+      document.getElementById("result-title").textContent = "🎉 DEFUSED!";
+      document.getElementById("result-detail").textContent =
+        `解除成功！ 残りミス: ${p.mistakes}/3`;
+    });
+    Socket.on("game:over", (p) => {
+      show("result");
+      document.getElementById("result-title").textContent = "💥 BOOM!";
+      document.getElementById("result-detail").textContent =
+        p.reason === "mistakes" ? "ミスが3回に達しました…" : "時間切れです…";
+    });
+    Socket.on("player:left", () => alert("相手が切断しました"));
+    Socket.on("error", (p) => alert("エラー: " + p.message));
+
+    function updateHud(state) {
+      if (!state) return;
+      document.getElementById("hud-mistakes").textContent =
+        `ミス: ${state.mistakes}/${state.maxMistakes}`;
+      const m = String(Math.floor(state.timeLeft / 60)).padStart(2, "0");
+      const s = String(state.timeLeft % 60).padStart(2, "0");
+      const timerEl = document.getElementById("hud-timer");
+      timerEl.textContent = `⏱ ${m}:${s}`;
+      // 残り30秒で警告表示（点滅）
+      if (state.timeLeft <= 30) {
+        timerEl.classList.add("danger");
+      } else {
+        timerEl.classList.remove("danger");
+      }
+      if (myRole === "A") BombUI.syncCasingHud(state);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "bomb-defusal",
+  "version": "1.0.0",
+  "description": "1:1 協力型爆弾解除ゲーム（WebSocket）",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.21.0"
+  }
+}
