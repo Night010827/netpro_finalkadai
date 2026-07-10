@@ -4,6 +4,7 @@
 
 const http = require("http");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const WebSocket = require("ws");
 const roomManager = require("./roomManager");
@@ -14,8 +15,20 @@ const code = require("./puzzles/code");
 const morse = require("./puzzles/morse");
 const simon = require("./puzzles/simon");
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
+const HOST = "0.0.0.0";
 const CLIENT_DIR = path.join(__dirname, "..", "client");
+
+function getLocalNetworkUrls(port) {
+  const urls = [];
+  const interfaces = os.networkInterfaces();
+  Object.values(interfaces).forEach((addresses) => {
+    addresses
+      .filter((addr) => addr.family === "IPv4" && !addr.internal)
+      .forEach((addr) => urls.push(`http://${addr.address}:${port}`));
+  });
+  return urls;
+}
 
 // --- 静的ファイル配信 ---
 const server = http.createServer((req, res) => {
@@ -192,6 +205,13 @@ function handlePuzzleAnswer(ws, moduleId, judgeFn, extraPayload) {
   }
 }
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
+  const networkUrls = getLocalNetworkUrls(PORT);
   console.log(`サーバー起動: http://localhost:${PORT}`);
+  if (networkUrls.length > 0) {
+    console.log("同じWi-Fiの別端末からアクセス:");
+    networkUrls.forEach((url) => console.log(`  ${url}`));
+  } else {
+    console.log("LAN用IPを取得できませんでした。端末のIPアドレスを確認してください。");
+  }
 });

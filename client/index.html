@@ -9,14 +9,36 @@
 <body>
   <!-- タイトル画面 -->
   <div class="screen" id="title-screen">
-    <h1>💣 BOMB DEFUSAL</h1>
-    <p class="subtitle">協力して爆弾を解除せよ</p>
-    <button id="btn-create">ルームを作成する</button>
-    <div class="join-box">
-      <input type="text" id="input-room" placeholder="ルームコード" maxlength="6" />
-      <button id="btn-join">参加</button>
+    <div class="title-shell">
+      <div class="title-logo">
+        <p class="title-kicker">2 PLAYERS CO-OP</p>
+        <h1>
+          <span class="title-main">BOMB</span>
+          <span class="title-submain">DEFUSAL</span>
+        </h1>
+        <p class="subtitle">協力して爆弾を解除せよ</p>
+      </div>
+
+      <div class="title-actions">
+        <button id="btn-create" class="title-button title-button-primary" type="button">
+          <span class="menu-en">New Game</span>
+          <span class="menu-ja">ルームを作成</span>
+        </button>
+        <div class="join-box title-join" id="join-panel">
+          <div class="join-controls">
+            <input type="text" id="input-room" placeholder="ROOM CODE" maxlength="6" autocomplete="off" />
+            <button id="btn-join" class="title-button title-button-secondary" type="button">
+              <span class="menu-en">Load Game</span>
+              <span class="menu-ja">参加</span>
+            </button>
+          </div>
+        </div>
+        <p id="room-info" class="title-room-info"></p>
+      </div>
+      <div class="title-footer" aria-hidden="true">
+        <span>© 2026 BOMB DEFUSAL PROJECT</span>
+      </div>
     </div>
-    <p id="room-info"></p>
   </div>
 
   <!-- ロール選択画面 -->
@@ -27,7 +49,7 @@
     <p id="role-info"></p>
   </div>
 
-  <!-- ゲーム画面（A/B共通コンテナ。中身はJSで切替）-->
+  <!-- ゲーム画面-->
   <div class="screen hidden" id="game-screen">
     <div class="hud">
       <span id="hud-timer">⏱ 05:00</span>
@@ -64,18 +86,63 @@
     }
 
     let myRole = null;
+    let joinInputOpen = false;
 
-    document.getElementById("btn-create").onclick = () => Socket.send("room:create");
+    const joinPanel = document.getElementById("join-panel");
+    const roomInput = document.getElementById("input-room");
+    const roomInfo = document.getElementById("room-info");
+
+    function openJoinInput() {
+      joinInputOpen = true;
+      joinPanel.classList.add("is-open");
+      roomInput.focus();
+    }
+
+    function renderRoomCode(roomId) {
+      roomInfo.replaceChildren();
+
+      const label = document.createElement("span");
+      label.className = "room-label";
+      label.textContent = "ROOM CODE";
+
+      const code = document.createElement("span");
+      code.className = "room-code";
+      code.textContent = roomId;
+
+      const help = document.createElement("span");
+      help.className = "room-help";
+      help.textContent = "相手にこのコードを伝えてください";
+
+      roomInfo.append(label, code, help);
+      roomInfo.classList.add("is-visible");
+    }
+
+    document.getElementById("btn-create").onclick = () => {
+      joinPanel.classList.remove("is-open");
+      joinInputOpen = false;
+      roomInfo.classList.remove("is-visible");
+      roomInfo.textContent = "";
+      Socket.send("room:create");
+    };
     document.getElementById("btn-join").onclick = () => {
-      const roomId = document.getElementById("input-room").value.toUpperCase();
+      if (!joinInputOpen) {
+        openJoinInput();
+        return;
+      }
+      const roomId = roomInput.value.trim().toUpperCase();
+      if (roomId) Socket.send("room:join", { roomId });
+    };
+    roomInput.onkeydown = (event) => {
+      if (event.key !== "Enter") return;
+      const roomId = roomInput.value.trim().toUpperCase();
       if (roomId) Socket.send("room:join", { roomId });
     };
     document.getElementById("btn-role-a").onclick = () => Socket.send("role:select", { role: "A" });
     document.getElementById("btn-role-b").onclick = () => Socket.send("role:select", { role: "B" });
 
     Socket.on("room:created", (p) => {
-      document.getElementById("room-info").textContent =
-        `ルームコード: ${p.roomId} （相手にこのコードを伝えてください）`;
+      roomInput.value = p.roomId;
+      renderRoomCode(p.roomId);
     });
     Socket.on("room:joined", (p) => {
       if (p.players >= 2) show("role");
