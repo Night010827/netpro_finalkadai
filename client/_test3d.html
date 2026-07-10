@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>3D TEST</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="screen" id="game-screen">
+    <div class="hud">
+      <span id="hud-timer">⏱ 05:00</span>
+      <span id="hud-mistakes">ミス: 0/3</span>
+      <span id="hud-room"></span>
+    </div>
+    <div id="game-body"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    // Socket スタブ（送信はコンソールに出すだけ）
+    const Socket = { send: (t, p) => console.log("SEND", t, p), on() {}, connect() {} };
+  </script>
+  <script src="js/bomb-ui.js"></script>
+  <script>
+    const mock = {
+      serial: "TEST01",
+      serialOdd: true,
+      puzzles: [
+        { id: 1, type: "wire", wires: ["RED", "BLUE", "YELLOW", "WHITE", "BLACK"] },
+        { id: 2, type: "code", display: [3, 8, 2, 5] },
+        { id: 3, type: "morse", patternId: "R", pattern: ["dot", "dash", "dot"] },
+        { id: 4, type: "simon", sequence: ["RED", "BLUE", "GREEN", "YELLOW"] },
+      ],
+    };
+    BombUI.render(document.getElementById("game-body"), mock);
+    BombUI.syncCasingHud({ timeLeft: 296, mistakes: 1, maxMistakes: 3, solved: [false, false, false, false] });
+  </script>
+</body>
+</html>

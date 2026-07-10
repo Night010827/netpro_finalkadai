@@ -4,7 +4,7 @@
 const wire = require("./puzzles/wire");
 const code = require("./puzzles/code");
 const morse = require("./puzzles/morse");
-const button = require("./puzzles/button");
+const simon = require("./puzzles/simon");
 
 function rand(n) {
   return Math.floor(Math.random() * n);
@@ -17,7 +17,7 @@ function generateAllPuzzles() {
       wire.generate(serialOdd),
       code.generate(serialOdd),
       morse.generate(),
-      button.generate(serialOdd),
+      simon.generate(serialOdd),
     ],
     serialOdd,
   };
@@ -28,9 +28,8 @@ function sanitizeForClient(puzzleData) {
   const stripped = puzzleData.puzzles.map((p) => {
     const copy = { ...p };
     delete copy.correctIndex;    // wire
-    delete copy.answer;          // code
+    delete copy.answer;          // code / simon
     delete copy.correctChannel;  // morse
-    delete copy.correctAction;   // button
     return copy;
   });
   return { puzzles: stripped, serialOdd: puzzleData.serialOdd };

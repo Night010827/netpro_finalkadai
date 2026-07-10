@@ -97,21 +97,27 @@ const ManualUI = (() => {
           <span class="manual-sec-name">コードモジュール</span>
         </div>
         <p class="manual-lead">
-          ディスプレイに表示される <b>4桁の数字</b> を、解除班員に読み上げさせよ。
-          下記の変換規則に従って <b>4桁の解除コード</b> を求め、入力させること。
+          ディスプレイの <b>4桁</b> を読み上げさせ、次の<b>手順を順に</b>適用して
+          解除コードを算出せよ。手順を飛ばしてはならない。
         </p>
-        <div class="manual-serial">
-          シリアル末尾は
-          <span class="manual-serial-val">${serialOdd ? "奇数" : "偶数"}</span>
-          である。
-        </div>
         <div class="manual-table-block">
           <table class="manual-table">
-            <tr><th>シリアル末尾</th><th>変換規則</th><th>例</th></tr>
-            <tr><td>奇数</td><td>表示の <b>並びを逆順</b> にした4桁</td><td>表示「1 2 3 4」→ <b>4321</b></td></tr>
-            <tr><td>偶数</td><td>表示4桁の <b>合計</b>（4桁ゼロ埋め）</td><td>表示「7 8 9 6」→ 30 → <b>0030</b></td></tr>
+            <tr><th>手順</th><th>操作</th></tr>
+            <tr><td>Ⅰ</td><td>表示4桁を合計し、その <b>一の位</b> を <b>K</b> とする<sup>†</sup></td></tr>
+            <tr><td>Ⅱ</td><td>各桁に <b>K を加算</b> し、<b>10 で割った余り</b> に置き換える</td></tr>
+            <tr><td>Ⅲ</td><td>Ⅱの4桁を、<span class="manual-dim">下欄の指示</span>に従って並べる</td></tr>
           </table>
+          <div class="manual-margin-note">
+            <sup>†</sup> 例: 表示 3 8 2 5 → 3+8+2+5=18 → 一の位は 8、すなわち K=8。
+            各桁+8 mod10 = 1 6 0 3。
+          </div>
         </div>
+        <p class="manual-lead manual-dim">
+          Ⅲの並べ方 ── 機体シリアルの末尾が
+          <u>${serialOdd ? "奇数のときは逆順" : "偶数のときは表示と同じ向き"}</u>、
+          <span class="manual-dim">それ以外は他方</span>とする。
+          （上例では ${serialOdd ? "3 0 6 1" : "1 6 0 3"} を入力）
+        </p>
       </div>
     `;
     container.appendChild(sec2);
@@ -144,35 +150,45 @@ const ManualUI = (() => {
     `;
     container.appendChild(sec3);
 
-    // §4 ボタンモジュール
+    // §4 サイモンモジュール
     const sec4 = document.createElement("div");
     sec4.className = "manual-book";
     sec4.innerHTML = `
       <div class="manual-section">
         <div class="manual-sec-head">
           <span class="manual-sec-no">§4</span>
-          <span class="manual-sec-name">ボタンモジュール</span>
+          <span class="manual-sec-name">記憶モジュール（サイモン）</span>
         </div>
         <p class="manual-lead">
-          ボタンの <u>色</u> と <u>表記</u> を解除班員に確認させよ。
-          下記手順を <b>上から照合</b> し、最初に合致した動作を指示すること。
+          「再生」を押すと4つのランプが <b>一定の順</b> で点滅する。
+          解除班員に <u>点滅した色を順に</u> 読み上げさせ、各色を下表で
+          <b>読み替えた色</b> を、<b>同じ順番</b> でボタンに入力させよ。
+          <span class="manual-dim">点滅色そのものを押させてはならない。</span>
         </p>
-        <div class="manual-serial">
-          シリアル末尾は
-          <span class="manual-serial-val">${serialOdd ? "奇数" : "偶数"}</span>
-          である。
-        </div>
         <div class="manual-table-block">
+          <div class="manual-table-cap">
+            変換表 ── 機体シリアル末尾が
+            <b>${serialOdd ? "奇数" : "偶数"}</b> の機体に適用<sup>‡</sup>
+          </div>
           <table class="manual-table">
-            <tr><th>No.</th><th>条件（上から照合）</th><th>動作</th></tr>
-            <tr><td>①</td><td>表記が <b>ABORT</b></td><td><b>TAP</b>（短く押す）</td></tr>
-            <tr><td>②</td><td>色が <b>赤</b></td><td><b>TAP</b></td></tr>
-            <tr><td>③</td><td>シリアル末尾が <b>奇数</b></td><td><b>HOLD</b>（1.2秒以上長押し）</td></tr>
-            <tr><td>④</td><td>上記いずれにも該当しない</td><td><b>TAP</b></td></tr>
+            <tr><th>点滅した色</th><th>押す色</th></tr>
+            ${serialOdd
+              ? `<tr><td>赤</td><td><b>青</b></td></tr>
+                 <tr><td>緑</td><td><b>黄</b></td></tr>
+                 <tr><td>青</td><td><b>赤</b></td></tr>
+                 <tr><td>黄</td><td><b>緑</b></td></tr>`
+              : `<tr><td>赤</td><td><b>緑</b></td></tr>
+                 <tr><td>緑</td><td><b>赤</b></td></tr>
+                 <tr><td>青</td><td><b>黄</b></td></tr>
+                 <tr><td>黄</td><td><b>青</b></td></tr>`}
           </table>
+          <div class="manual-margin-note">
+            <sup>‡</sup> 末尾が反対の奇偶であった場合、赤と緑・青と黄の対応はすべて入れ替わる。
+          </div>
         </div>
         <div class="manual-warn-box">
-          <b>警告</b> ── HOLD指示時は1.2秒以上の押下後に放させること。短すぎる/長すぎるは結果に影響しない。
+          <b>警告</b> ── 全 <b>4色ぶん</b> を入力し終えてから「送信」を押させること。
+          途中で誤ったら「↺」で入力を消し、再生からやり直すこと。
         </div>
       </div>
     `;

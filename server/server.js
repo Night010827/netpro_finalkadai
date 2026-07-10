@@ -12,9 +12,9 @@ const { generateAllPuzzles, sanitizeForClient } = require("./puzzleGenerator");
 const wire = require("./puzzles/wire");
 const code = require("./puzzles/code");
 const morse = require("./puzzles/morse");
-const button = require("./puzzles/button");
+const simon = require("./puzzles/simon");
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const CLIENT_DIR = path.join(__dirname, "..", "client");
 
 // --- 静的ファイル配信 ---
@@ -31,7 +31,11 @@ const server = http.createServer((req, res) => {
       res.end("Not Found");
       return;
     }
-    res.writeHead(200, { "Content-Type": mime[ext] || "text/plain" });
+    res.writeHead(200, {
+      "Content-Type": mime[ext] || "text/plain",
+      // 開発中に古いJS/CSSがキャッシュされ続けるのを防ぐ
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+    });
     res.end(content);
   });
 });
@@ -101,8 +105,8 @@ function handleMessage(ws, msg) {
       handlePuzzleAnswer(ws, 3, (puzzle) => morse.judge(puzzle, msg.payload.channel), { channel: msg.payload.channel });
       break;
     }
-    case "puzzle:button:release": {
-      handlePuzzleAnswer(ws, 4, (puzzle) => button.judge(puzzle, msg.payload.action), { action: msg.payload.action });
+    case "puzzle:simon:submit": {
+      handlePuzzleAnswer(ws, 4, (puzzle) => simon.judge(puzzle, msg.payload.sequence), {});
       break;
     }
 
