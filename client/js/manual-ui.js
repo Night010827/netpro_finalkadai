@@ -5,7 +5,8 @@
 const ManualUI = (() => {
   function render(container, data) {
     container.innerHTML = "";
-    const serialOdd = data.serialOdd;
+    // シリアル番号は解除班員（操作担当・プレイヤーA）の機体にのみ表示される。
+    // マニュアル側は値を知らされないため、奇偶どちらでも判定できるよう両方を併記する。
 
     const book = document.createElement("div");
     book.className = "manual-book";
@@ -19,28 +20,35 @@ const ManualUI = (() => {
 
       <div class="manual-section">
         <div class="manual-sec-head">
+          <span class="manual-sec-no">§0</span>
+          <span class="manual-sec-name">総則（全モジュール共通の注意事項）</span>
+        </div>
+
+        <div class="manual-note">
+          <span class="manual-note-tag">重要</span>
+          条件表は<b>上から順に照合</b>し、<b>最初に合致した</b>項目に従うこと（§1）。
+        </div>
+
+        <div class="manual-serial">
+          シリアル番号は<b>操作担当の画面にのみ表示</b>される。
+          <span class="manual-serial-val">末尾の1桁</span>を確認させ、奇偶を判定すること
+          <span class="manual-serial-tip">（§1・§2・§4 で使用）</span>。
+          <div class="manual-warn-box">
+          <b>警告</b> ── 誤判断でミスが加算され、<b>3回で起爆</b>する。確信を得てから指示せよ。
+        </div>
+        </div>
+      </div>
+
+      <div class="manual-section">
+        <div class="manual-sec-head">
           <span class="manual-sec-no">§1</span>
           <span class="manual-sec-name">ワイヤー切断手順</span>
         </div>
 
         <p class="manual-lead">
-          本モジュールには <b>4本から6本</b> のワイヤーが接続されている。
-          解除班員（操作担当）に <u>ワイヤーの総本数</u> と <u>上から順の色</u> を読み上げさせ、
-          下記の判定手順に従って切断すべき1本を特定し、指示せよ。
+          ワイヤーは <b>4〜6本</b>。操作担当に <u>本数</u> と <u>上から順の色</u> を読み上げさせ、
+          下表で切断する1本を特定せよ。
         </p>
-
-        <div class="manual-note">
-          <span class="manual-note-tag">重要</span>
-          条件は<b>上から順に</b>照合し、<b>最初に合致した</b>項目に従うこと。
-          以降の条件は読まなくてよい。
-        </div>
-
-        <div class="manual-serial">
-          本機体のシリアル番号末尾は
-          <span class="manual-serial-val">${serialOdd ? "奇数" : "偶数"}</span>
-          である。
-          <span class="manual-serial-tip">（一部の判定で参照する）</span>
-        </div>
 
         <!-- 4本 -->
         <div class="manual-table-block">
@@ -64,7 +72,7 @@ const ManualUI = (() => {
             <tr><td>③</td><td>黒色のワイヤーが <b>1本も無い</b></td><td>上から <b>2番目</b></td></tr>
             <tr><td>④</td><td>上記いずれにも該当しない</td><td>上から <b>1番目</b></td></tr>
           </table>
-          <div class="manual-margin-note">※②の「赤1本」とは赤がちょうど1本の意。2本以上では該当しない。</div>
+          <div class="manual-margin-note">※②「赤1本」＝ちょうど1本（2本以上は非該当）。</div>
         </div>
 
         <!-- 6本 -->
@@ -79,10 +87,7 @@ const ManualUI = (() => {
           </table>
         </div>
 
-        <div class="manual-warn-box">
-          <b>警告</b> ── 誤ったワイヤーの切断は起爆カウントを進める。
-          3回の誤操作で即時起爆する。確信が持てるまで切断を指示してはならない。
-        </div>
+
       </div>
     `;
     container.appendChild(book);
@@ -97,8 +102,7 @@ const ManualUI = (() => {
           <span class="manual-sec-name">コードモジュール</span>
         </div>
         <p class="manual-lead">
-          ディスプレイの <b>4桁</b> を読み上げさせ、次の<b>手順を順に</b>適用して
-          解除コードを算出せよ。手順を飛ばしてはならない。
+          表示 <b>4桁</b> を読み上げさせ、次の手順で解除コードを算出せよ。
         </p>
         <div class="manual-table-block">
           <table class="manual-table">
@@ -108,15 +112,12 @@ const ManualUI = (() => {
             <tr><td>Ⅲ</td><td>Ⅱの4桁を、<span class="manual-dim">下欄の指示</span>に従って並べる</td></tr>
           </table>
           <div class="manual-margin-note">
-            <sup>†</sup> 例: 表示 3 8 2 5 → 3+8+2+5=18 → 一の位は 8、すなわち K=8。
-            各桁+8 mod10 = 1 6 0 3。
+            <sup>†</sup> 例: 3 8 2 5 → 合計18 → K=8 → 各桁+8 mod10 = 1 6 0 3。
           </div>
         </div>
         <p class="manual-lead manual-dim">
-          Ⅲの並べ方 ── 機体シリアルの末尾が
-          <u>${serialOdd ? "奇数のときは逆順" : "偶数のときは表示と同じ向き"}</u>、
-          <span class="manual-dim">それ以外は他方</span>とする。
-          （上例では ${serialOdd ? "3 0 6 1" : "1 6 0 3"} を入力）
+          Ⅲの並べ方 ── シリアル末尾が<b>奇数なら逆順</b>、<b>偶数ならそのまま</b>。
+          （例: 奇数→<b>3 0 6 1</b> ／ 偶数→<b>1 6 0 3</b>）
         </p>
       </div>
     `;
@@ -132,8 +133,7 @@ const ManualUI = (() => {
           <span class="manual-sec-name">モールスモジュール</span>
         </div>
         <p class="manual-lead">
-          解除班員が再生したLED点滅パターン（短=・, 長=−）を読み取らせ、
-          下記対応表の <b>CH番号</b> を選択させて送信させよ。
+          LED点滅（短=・、長=−）を読み取らせ、下表の <b>CH番号</b> を送信させよ。
         </p>
         <div class="manual-table-block">
           <table class="manual-table">
@@ -151,6 +151,19 @@ const ManualUI = (() => {
     container.appendChild(sec3);
 
     // §4 サイモンモジュール
+    // 変換表は「シリアル末尾の奇偶」×「現在のミス回数」で切り替わる（simon.js と対応）。
+    const SIMON_MAPS_EVEN = [
+      { RED: "緑", GREEN: "赤", BLUE: "黄", YELLOW: "青" },
+      { RED: "黄", GREEN: "赤", BLUE: "緑", YELLOW: "青" },
+      { RED: "青", GREEN: "黄", BLUE: "緑", YELLOW: "赤" },
+    ];
+    const SIMON_MAPS_ODD = [
+      { RED: "青", GREEN: "黄", BLUE: "赤", YELLOW: "緑" },
+      { RED: "緑", GREEN: "青", BLUE: "黄", YELLOW: "赤" },
+      { RED: "緑", GREEN: "黄", BLUE: "赤", YELLOW: "青" },
+    ];
+    const SIMON_ROWS = [["RED", "赤"], ["GREEN", "緑"], ["BLUE", "青"], ["YELLOW", "黄"]];
+
     const sec4 = document.createElement("div");
     sec4.className = "manual-book";
     sec4.innerHTML = `
@@ -160,35 +173,34 @@ const ManualUI = (() => {
           <span class="manual-sec-name">記憶モジュール（サイモン）</span>
         </div>
         <p class="manual-lead">
-          「再生」を押すと4つのランプが <b>一定の順</b> で点滅する。
-          解除班員に <u>点滅した色を順に</u> 読み上げさせ、各色を下表で
-          <b>読み替えた色</b> を、<b>同じ順番</b> でボタンに入力させよ。
-          <span class="manual-dim">点滅色そのものを押させてはならない。</span>
+          「再生」で4色が <b>一定の順</b> で点滅する。読み上げさせた色を下表で
+          <b>読み替え</b>、同じ順でボタンに入力させよ
+          <span class="manual-dim">（点滅色そのものは不可）</span>。
+          <b>シリアル末尾の奇偶</b>と <b>ミス表示</b> を確認し、該当する表・列を用いること<sup>‡</sup>。
         </p>
         <div class="manual-table-block">
-          <div class="manual-table-cap">
-            変換表 ── 機体シリアル末尾が
-            <b>${serialOdd ? "奇数" : "偶数"}</b> の機体に適用<sup>‡</sup>
-          </div>
-          <table class="manual-table">
-            <tr><th>点滅した色</th><th>押す色</th></tr>
-            ${serialOdd
-              ? `<tr><td>赤</td><td><b>青</b></td></tr>
-                 <tr><td>緑</td><td><b>黄</b></td></tr>
-                 <tr><td>青</td><td><b>赤</b></td></tr>
-                 <tr><td>黄</td><td><b>緑</b></td></tr>`
-              : `<tr><td>赤</td><td><b>緑</b></td></tr>
-                 <tr><td>緑</td><td><b>赤</b></td></tr>
-                 <tr><td>青</td><td><b>黄</b></td></tr>
-                 <tr><td>黄</td><td><b>青</b></td></tr>`}
+          <div class="manual-table-cap">◆ シリアル末尾が <b>奇数</b> の場合</div>
+          <table class="manual-table manual-table-wide">
+            <tr><th>点滅した色</th><th>ミス 0 回</th><th>ミス 1 回</th><th>ミス 2 回</th></tr>
+            ${SIMON_ROWS.map(([key, label]) =>
+              `<tr><td>${label}</td><td>${SIMON_MAPS_ODD[0][key]}</td><td>${SIMON_MAPS_ODD[1][key]}</td><td>${SIMON_MAPS_ODD[2][key]}</td></tr>`
+            ).join("")}
+          </table>
+        </div>
+        <div class="manual-table-block">
+          <div class="manual-table-cap">◆ シリアル末尾が <b>偶数</b> の場合</div>
+          <table class="manual-table manual-table-wide">
+            <tr><th>点滅した色</th><th>ミス 0 回</th><th>ミス 1 回</th><th>ミス 2 回</th></tr>
+            ${SIMON_ROWS.map(([key, label]) =>
+              `<tr><td>${label}</td><td>${SIMON_MAPS_EVEN[0][key]}</td><td>${SIMON_MAPS_EVEN[1][key]}</td><td>${SIMON_MAPS_EVEN[2][key]}</td></tr>`
+            ).join("")}
           </table>
           <div class="manual-margin-note">
-            <sup>‡</sup> 末尾が反対の奇偶であった場合、赤と緑・青と黄の対応はすべて入れ替わる。
+
           </div>
         </div>
         <div class="manual-warn-box">
-          <b>警告</b> ── 全 <b>4色ぶん</b> を入力し終えてから「送信」を押させること。
-          途中で誤ったら「↺」で入力を消し、再生からやり直すこと。
+          <b>警告</b> ── <b>4色すべて</b>入力してから送信させよ。誤入力時は「↺」で消して再生からやり直す。
         </div>
       </div>
     `;

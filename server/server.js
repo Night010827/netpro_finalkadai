@@ -9,7 +9,7 @@ const path = require("path");
 const WebSocket = require("ws");
 const roomManager = require("./roomManager");
 const gameManager = require("./gameManager");
-const { generateAllPuzzles, sanitizeForClient } = require("./puzzleGenerator");
+const { generateAllPuzzles, sanitizeForClient, sanitizeForManual } = require("./puzzleGenerator");
 const wire = require("./puzzles/wire");
 const code = require("./puzzles/code");
 const morse = require("./puzzles/morse");
@@ -119,7 +119,7 @@ function handleMessage(ws, msg) {
       break;
     }
     case "puzzle:simon:submit": {
-      handlePuzzleAnswer(ws, 4, (puzzle) => simon.judge(puzzle, msg.payload.sequence), {});
+      handlePuzzleAnswer(ws, 4, (puzzle, room) => simon.judge(puzzle, msg.payload.sequence, room.gameState.serialOdd, room.gameState.mistakes), {});
       break;
     }
 
@@ -137,14 +137,15 @@ function startGame(roomId) {
   gameManager.initGame(room, fullPuzzles);
 
   // 各プレイヤーに役割を伝えつつ、Aには答え抜きデータを送る
-  const clientPuzzles = sanitizeForClient(fullPuzzles);
+  const clientPuzzles = sanitizeForClient(fullPuzzles); // A: 答えは除くがシリアルは実物として渡す
+  const manualPuzzles = sanitizeForManual(fullPuzzles); // B: 答えは渡すがシリアルは伏せる（Aから聞く情報）
   room.players.forEach((p) => {
     p.ws.send(JSON.stringify({
       type: "game:start",
       payload: {
         role: p.role,
         // A=爆弾担当には見た目データ、B=マニュアル担当には全データ（答えはマニュアルで導出するので可）
-        data: p.role === "A" ? clientPuzzles : fullPuzzles,
+        data: p.role === "A" ? clientPuzzles : manualPuzzles,
         state: gameManager.publicState(room),
       },
     }));
@@ -173,7 +174,7 @@ function handlePuzzleAnswer(ws, moduleId, judgeFn, extraPayload) {
   const idx = room.gameState.puzzles.findIndex((p) => p.id === moduleId);
   if (room.gameState.solved[idx]) return;
 
-  const correct = judgeFn(puzzle);
+  const correct = judgeFn(puzzle, room);
   let gameOver = false;
   if (correct) {
     gameManager.markSolved(room, moduleId);

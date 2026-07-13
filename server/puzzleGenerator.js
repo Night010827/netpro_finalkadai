@@ -10,8 +10,18 @@ function rand(n) {
   return Math.floor(Math.random() * n);
 }
 
+// 爆弾側（プレイヤーA）にのみ見える機体シリアル。末尾は必ず数字にして奇偶を確定させる。
+function randomSerial() {
+  const alnum = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  for (let i = 0; i < 5; i++) s += alnum[rand(alnum.length)];
+  s += String(rand(10)); // 最後の1文字は必ず数字
+  return s;
+}
+
 function generateAllPuzzles() {
-  const serialOdd = rand(2) === 1;
+  const serial = randomSerial();
+  const serialOdd = Number(serial[serial.length - 1]) % 2 === 1;
   return {
     puzzles: [
       wire.generate(serialOdd),
@@ -19,11 +29,12 @@ function generateAllPuzzles() {
       morse.generate(),
       simon.generate(serialOdd),
     ],
+    serial,
     serialOdd,
   };
 }
 
-// クライアントAに送る用：答えを除いたデータ
+// クライアントA（爆弾担当）に送る用：答えは除くが、機体シリアルは実物として見せる
 function sanitizeForClient(puzzleData) {
   const stripped = puzzleData.puzzles.map((p) => {
     const copy = { ...p };
@@ -32,7 +43,12 @@ function sanitizeForClient(puzzleData) {
     delete copy.correctChannel;  // morse
     return copy;
   });
-  return { puzzles: stripped, serialOdd: puzzleData.serialOdd };
+  return { puzzles: stripped, serial: puzzleData.serial };
 }
 
-module.exports = { generateAllPuzzles, sanitizeForClient };
+// クライアントB（マニュアル担当）に送る用：シリアルは伏せる（Aから伝えてもらう情報のため）
+function sanitizeForManual(puzzleData) {
+  return { puzzles: puzzleData.puzzles };
+}
+
+module.exports = { generateAllPuzzles, sanitizeForClient, sanitizeForManual };

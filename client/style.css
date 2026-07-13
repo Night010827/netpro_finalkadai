@@ -1407,8 +1407,12 @@ input {
    ========================================================= */
 #game-body { }
 .manual-book {
-  background: #fbfbf7;                 /* 白い紙 */
-  color: #1e1e1e;                      /* 黒インク */
+  background-color: #f2f0e9;           /* 白い紙（ややくすませて印字とのコントラストを弱める） */
+  /* 粗悪な複写機で刷ったような細かいノイズを重ねる */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 4px);
+  color: #33312b;                      /* 黒インク（あえて純黒より少し薄く） */
   max-width: 680px; margin: 0 auto 1.2rem;
   padding: 0;
   border: 1px solid #cfcfc8;
@@ -1420,79 +1424,82 @@ input {
 }
 
 .manual-cover {
-  background: #fbfbf7; color: #1e1e1e;
+  background: #fbfbf7; color: #33312b;
   padding: 1.1rem 1.6rem 0.8rem;
-  border-bottom: 1px solid #1e1e1e;
+  border-bottom: 1px solid #33312b;
 }
 .manual-cover-title { font-size: 1.15rem; font-weight: bold; letter-spacing: 2px; }
 .manual-cover-sub {
-  font-size: 0.72rem; color: #1e1e1e; margin-top: 0.3rem; letter-spacing: 1px;
+  font-size: 0.72rem; color: #33312b; margin-top: 0.3rem; letter-spacing: 1px;
 }
 .manual-cover-warn {
-  margin-top: 0.5rem; font-size: 0.76rem; color: #1e1e1e;
+  margin-top: 0.5rem; font-size: 0.76rem; color: #33312b;
 }
 
 .manual-section { padding: 1.2rem 1.6rem 1.5rem; }
 .manual-sec-head {
   display: flex; align-items: baseline; gap: 0.5rem;
-  border-bottom: 1px solid #1e1e1e; padding-bottom: 0.3rem; margin-bottom: 0.9rem;
+  border-bottom: 1px solid #33312b; padding-bottom: 0.3rem; margin-bottom: 0.9rem;
 }
-.manual-sec-no { font-weight: bold; font-size: 1rem; color: #1e1e1e; }
+.manual-sec-no { font-weight: bold; font-size: 1rem; color: #33312b; }
 .manual-sec-name { font-size: 1rem; font-weight: bold; letter-spacing: 1px; }
 
 .manual-lead {
-  font-size: 0.82rem; line-height: 1.75; margin-bottom: 0.85rem;
-  text-align: justify; letter-spacing: 0.01em; color: #1e1e1e;
+  font-size: 0.77rem; line-height: 1.55; margin-bottom: 0.85rem;
+  text-align: justify; letter-spacing: 0.015em; color: #33312b;
 }
 .manual-lead u { text-decoration-style: solid; }
-.manual-dim { color: #1e1e1e; }        /* 薄い色にしない=読みにくく */
-.manual-lead sup, .manual-margin-note sup { color: #1e1e1e; font-weight: bold; }
+.manual-dim { color: #33312b; }        /* 薄い色にしない=読みにくく */
+.manual-lead sup, .manual-margin-note sup { color: #33312b; font-weight: bold; }
 
 /* 注記・警告も囲まず、素のテキストとして流し込む */
 .manual-note {
   padding: 0; font-size: 0.8rem; line-height: 1.7;
-  margin-bottom: 0.85rem; color: #1e1e1e;
+  margin-bottom: 0.85rem; color: #33312b;
 }
 .manual-note-tag {
-  font-weight: bold; margin-right: 0.4rem; color: #1e1e1e;
+  font-weight: bold; margin-right: 0.4rem; color: #33312b;
 }
 .manual-note-tag::before { content: "["; }
 .manual-note-tag::after { content: "] "; }
 
 .manual-serial {
-  font-size: 0.82rem; padding: 0; margin-bottom: 0.9rem; color: #1e1e1e;
+  font-size: 0.82rem; padding: 0; margin-bottom: 0.9rem; color: #33312b;
 }
 .manual-serial-val {
-  font-weight: bold; color: #1e1e1e; font-size: 0.82rem;
-  padding: 0 0.15rem; text-decoration: underline;
+  font-weight: bold; color: #33312b; font-size: 0.78rem;
+  padding: 0 0.15rem;
 }
-.manual-serial-tip { color: #1e1e1e; font-size: 0.76rem; }
+.manual-serial-tip { color: #33312b; font-size: 0.76rem; }
 
 .manual-table-block { margin-bottom: 1rem; }
 .manual-table-cap {
-  font-size: 0.8rem; font-weight: bold; margin-bottom: 0.35rem; color: #1e1e1e;
+  font-size: 0.8rem; font-weight: bold; margin-bottom: 0.35rem; color: #33312b;
 }
 .manual-table {
-  width: 100%; border-collapse: collapse; font-size: 0.78rem;
+  width: 100%; border-collapse: collapse; font-size: 0.73rem;
   font-family: "Courier New", "Consolas", monospace; background: transparent;
 }
 .manual-table th, .manual-table td {
-  border: 1px solid #1e1e1e; padding: 0.35rem 0.55rem; text-align: left;
-  line-height: 1.45; color: #1e1e1e; background: transparent;
+  border: 1px solid #33312b; padding: 0.28rem 0.45rem; text-align: left;
+  line-height: 1.3; color: #33312b; background: transparent;
 }
-.manual-table th { font-weight: bold; font-size: 0.76rem; }
-.manual-table td:first-child { text-align: center; font-weight: bold; color: #1e1e1e; width: 8%; }
+.manual-table th { font-weight: bold; font-size: 0.72rem; }
+.manual-table td:first-child { text-align: center; font-weight: bold; color: #33312b; width: 8%; }
 .manual-table td:last-child { font-weight: bold; width: 30%; }
 
+/* サイモン用: ミス段階別の3列表。答え列だけ強調すると読みやすくなりすぎるため太字にしない */
+.manual-table-wide td:not(:first-child) { font-weight: normal; width: auto; text-align: center; }
+
 .manual-margin-note {
-  font-size: 0.76rem; color: #1e1e1e; margin-top: 0.3rem;
+  font-size: 0.76rem; color: #33312b; margin-top: 0.3rem;
 }
 
 /* 警告も枠なし・色なしの素テキスト */
 .manual-warn-box {
   padding: 0.6rem 0; font-size: 0.8rem; line-height: 1.7;
-  color: #1e1e1e; margin-top: 0.9rem;
-  border-top: 1px solid #1e1e1e; border-bottom: 1px solid #1e1e1e;
+  color: #33312b; margin-top: 0.9rem;
+  border-top: 1px solid #33312b; border-bottom: 1px solid #33312b;
 }
 
 .manual-locked { opacity: 0.55; }
