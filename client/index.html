@@ -43,10 +43,42 @@
 
   <!-- ロール選択画面 -->
   <div class="screen hidden" id="role-screen">
-    <h2>ロールを選択</h2>
-    <button id="btn-role-a">💣 爆弾担当（A）</button>
-    <button id="btn-role-b">📖 マニュアル担当（B）</button>
-    <p id="role-info"></p>
+    <div class="role-shell">
+      <header class="role-heading">
+        <p class="role-kicker">MISSION ASSIGNMENT</p>
+        <h2><span>SELECT</span> ROLE</h2>
+        <p class="role-subtitle">担当を選択</p>
+      </header>
+
+      <div class="role-options" aria-label="担当を選択">
+        <button id="btn-role-a" class="role-option" type="button" aria-describedby="role-a-description">
+          <span class="role-number">A</span>
+          <span class="role-option-copy">
+            <span class="role-option-en">Bomb Operator</span>
+            <span class="role-option-ja">爆弾担当</span>
+            <span class="role-option-description" id="role-a-description">爆弾を調べて解除装置を操作する</span>
+          </span>
+          <span class="role-select-mark" aria-hidden="true">SELECT</span>
+        </button>
+
+        <button id="btn-role-b" class="role-option" type="button" aria-describedby="role-b-description">
+          <span class="role-number">B</span>
+          <span class="role-option-copy">
+            <span class="role-option-en">Manual Expert</span>
+            <span class="role-option-ja">マニュアル担当</span>
+            <span class="role-option-description" id="role-b-description">解除マニュアルを読み解いて指示を伝える</span>
+          </span>
+          <span class="role-select-mark" aria-hidden="true">SELECT</span>
+        </button>
+      </div>
+
+      <div class="role-status" aria-live="polite">
+        <p class="role-room">ROOM <span id="role-room-code">------</span></p>
+        <p id="role-info">担当を選んでください</p>
+      </div>
+
+      <div class="role-footer" aria-hidden="true">2 PLAYERS CO-OP</div>
+    </div>
   </div>
 
   <!-- ゲーム画面-->
@@ -60,10 +92,37 @@
   </div>
 
   <!-- 結果画面 -->
-  <div class="screen hidden" id="result-screen">
-    <h1 id="result-title"></h1>
-    <p id="result-detail"></p>
-    <button onclick="location.reload()">タイトルへ戻る</button>
+  <div class="screen hidden" id="result-screen" data-outcome="success">
+    <div class="result-shell">
+      <header class="result-heading">
+        <p class="result-kicker" id="result-kicker">MISSION COMPLETE</p>
+        <div class="result-emblem" id="result-emblem" aria-hidden="true">✓</div>
+        <h1 id="result-title">DEFUSED</h1>
+        <p class="result-headline" id="result-headline">爆弾解除成功</p>
+      </header>
+
+      <p class="result-detail" id="result-detail"></p>
+
+      <div class="result-stats" aria-label="ゲーム結果">
+        <div class="result-stat">
+          <span class="result-stat-label">TIME LEFT</span>
+          <strong id="result-time">00:00</strong>
+          <span>残り時間</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">MISTAKES</span>
+          <strong id="result-mistakes">0 / 3</strong>
+          <span>ミス回数</span>
+        </div>
+      </div>
+
+      <button class="result-button" type="button" onclick="location.reload()">
+        <span>Return to Title</span>
+        <small>タイトルへ戻る</small>
+      </button>
+
+      <div class="result-footer" aria-hidden="true">BOMB DEFUSAL PROJECT</div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
@@ -86,6 +145,7 @@
     }
 
     let myRole = null;
+    let lastGameState = null;
     let joinInputOpen = false;
 
     const joinPanel = document.getElementById("join-panel");
@@ -140,16 +200,28 @@
     document.getElementById("btn-role-a").onclick = () => Socket.send("role:select", { role: "A" });
     document.getElementById("btn-role-b").onclick = () => Socket.send("role:select", { role: "B" });
 
+    function renderSelectedRole(role) {
+      document.querySelectorAll(".role-option").forEach((button) => {
+        button.classList.toggle("is-selected", button.id === `btn-role-${role.toLowerCase()}`);
+        button.disabled = true;
+      });
+    }
+
     Socket.on("room:created", (p) => {
       roomInput.value = p.roomId;
       renderRoomCode(p.roomId);
     });
     Socket.on("room:joined", (p) => {
-      if (p.players >= 2) show("role");
+      if (p.players >= 2) {
+        document.getElementById("role-room-code").textContent = p.roomId;
+        show("role");
+      }
     });
     Socket.on("role:confirmed", (p) => {
+      renderSelectedRole(p.role);
+      const roleName = p.role === "A" ? "爆弾担当" : "マニュアル担当";
       document.getElementById("role-info").textContent =
-        `あなたは ${p.role} を選択。相手の選択を待っています...`;
+        `${roleName}を選択しました。相手を待っています...`;
     });
     Socket.on("game:start", (p) => {
       myRole = p.role;
@@ -174,23 +246,47 @@
       updateHud(p.state);
     });
 
+    function formatResultTime(seconds) {
+      const safeSeconds = Math.max(0, Number(seconds) || 0);
+      const minutes = String(Math.floor(safeSeconds / 60)).padStart(2, "0");
+      const remainder = String(safeSeconds % 60).padStart(2, "0");
+      return `${minutes}:${remainder}`;
+    }
+
+    function renderResult(outcome, payload = {}) {
+      const success = outcome === "success";
+      const state = lastGameState || {};
+      const timeLeft = payload.timeLeft ?? state.timeLeft ?? 0;
+      const mistakes = payload.mistakes ?? state.mistakes ?? (payload.reason === "mistakes" ? 3 : 0);
+
+      screens.result.dataset.outcome = outcome;
+      document.getElementById("result-kicker").textContent = success ? "MISSION COMPLETE" : "MISSION FAILED";
+      document.getElementById("result-emblem").textContent = success ? "✓" : "!";
+      document.getElementById("result-title").textContent = success ? "DEFUSED" : "DETONATED";
+      document.getElementById("result-headline").textContent = success ? "爆弾解除成功" : "解除失敗";
+      document.getElementById("result-detail").textContent = success
+        ? "チームの連携により、爆発を阻止しました。"
+        : payload.reason === "mistakes"
+          ? "ミスが3回に達し、爆弾が起爆しました。"
+          : "制限時間内に解除できませんでした。";
+      document.getElementById("result-time").textContent = formatResultTime(timeLeft);
+      document.getElementById("result-mistakes").textContent = `${mistakes} / 3`;
+    }
+
     Socket.on("game:clear", (p) => {
+      renderResult("success", p);
       show("result");
-      document.getElementById("result-title").textContent = "🎉 DEFUSED!";
-      document.getElementById("result-detail").textContent =
-        `解除成功！ 残りミス: ${p.mistakes}/3`;
     });
     Socket.on("game:over", (p) => {
+      renderResult("failure", p);
       show("result");
-      document.getElementById("result-title").textContent = "💥 BOOM!";
-      document.getElementById("result-detail").textContent =
-        p.reason === "mistakes" ? "ミスが3回に達しました…" : "時間切れです…";
     });
     Socket.on("player:left", () => alert("相手が切断しました"));
     Socket.on("error", (p) => alert("エラー: " + p.message));
 
     function updateHud(state) {
       if (!state) return;
+      lastGameState = { ...state };
       document.getElementById("hud-mistakes").textContent =
         `ミス: ${state.mistakes}/${state.maxMistakes}`;
       const m = String(Math.floor(state.timeLeft / 60)).padStart(2, "0");

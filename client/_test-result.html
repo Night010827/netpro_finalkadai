@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Result Screen Test | BOMB DEFUSAL</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="screen" id="result-screen" data-outcome="success">
+    <div class="result-shell">
+      <header class="result-heading">
+        <p class="result-kicker" id="result-kicker">MISSION COMPLETE</p>
+        <div class="result-emblem" id="result-emblem" aria-hidden="true">✓</div>
+        <h1 id="result-title">DEFUSED</h1>
+        <p class="result-headline" id="result-headline">爆弾解除成功</p>
+      </header>
+
+      <p class="result-detail" id="result-detail">チームの連携により、爆発を阻止しました。</p>
+
+      <div class="result-stats" aria-label="ゲーム結果">
+        <div class="result-stat">
+          <span class="result-stat-label">TIME LEFT</span>
+          <strong id="result-time">01:42</strong>
+          <span>残り時間</span>
+        </div>
+        <div class="result-stat">
+          <span class="result-stat-label">MISTAKES</span>
+          <strong id="result-mistakes">1 / 3</strong>
+          <span>ミス回数</span>
+        </div>
+      </div>
+
+      <button class="result-button" id="toggle-result" type="button">
+        <span>View Failed Result</span>
+        <small>失敗画面へ切り替え</small>
+      </button>
+
+      <div class="result-footer" aria-hidden="true">BOMB DEFUSAL PROJECT</div>
+    </div>
+  </div>
+
+  <script>
+    const screen = document.getElementById("result-screen");
+    const toggleButton = document.getElementById("toggle-result");
+
+    function renderTestResult(outcome) {
+      const success = outcome === "success";
+      screen.dataset.outcome = outcome;
+      document.getElementById("result-kicker").textContent = success ? "MISSION COMPLETE" : "MISSION FAILED";
+      document.getElementById("result-emblem").textContent = success ? "✓" : "!";
+      document.getElementById("result-title").textContent = success ? "DEFUSED" : "DETONATED";
+      document.getElementById("result-headline").textContent = success ? "爆弾解除成功" : "解除失敗";
+      document.getElementById("result-detail").textContent = success
+        ? "チームの連携により、爆発を阻止しました。"
+        : "制限時間内に解除できませんでした。";
+      document.getElementById("result-time").textContent = success ? "01:42" : "00:00";
+      document.getElementById("result-mistakes").textContent = success ? "1 / 3" : "2 / 3";
+      toggleButton.querySelector("span").textContent = success ? "View Failed Result" : "View Success Result";
+      toggleButton.querySelector("small").textContent = success ? "失敗画面へ切り替え" : "成功画面へ切り替え";
+    }
+
+    const initialOutcome = new URLSearchParams(location.search).get("status") === "fail" ? "failure" : "success";
+    renderTestResult(initialOutcome);
+    toggleButton.onclick = () => renderTestResult(screen.dataset.outcome === "success" ? "failure" : "success");
+  </script>
+</body>
+</html>
