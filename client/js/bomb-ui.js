@@ -77,7 +77,7 @@ const BombUI = (() => {
     const hint = document.createElement("div");
     hint.className = "bomb-hint";
     hint.id = "bomb-hint-line";
-    hint.textContent = "▶ 爆弾をドラッグで少し傾けられる。各ギミックをクリックで操作";
+    hint.textContent = " ▶ 各ギミックをクリックで操作";
     casing.appendChild(hint);
 
     container.appendChild(casing);
