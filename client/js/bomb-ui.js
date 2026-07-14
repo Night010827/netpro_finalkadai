@@ -101,7 +101,7 @@ const BombUI = (() => {
     scene.background = new THREE.Color(0x0a0a0c);
 
     camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
-    camera.position.set(0, 0, 7);
+    camera.position.set(0, 0, 7.7);
     camera.lookAt(0, 0, 0);
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -220,7 +220,7 @@ const BombUI = (() => {
     const spacing = 1.45 / n;
     const startY = cy + ((n - 1) * spacing) / 2 - 0.02;
     const radius = Math.min(0.09, spacing * 0.28);
-    const leftX = cx - 1.15, rightX = cx + 1.05;
+    const leftX = cx - 1.05, rightX = cx + 0.95;
 
     // 左端子は上から順(0..n-1)、右端子は同じ高さ集合をシャッフル → 交差して絡まる
     const ys = [];
@@ -292,10 +292,10 @@ const BombUI = (() => {
 
     // 3x4 キーパッド（ベイ下半分に収める）
     const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "CLR", "0", "OK"];
-    const kw = 0.62, kh = 0.26, gx = 0.08, gy = 0.045;
+    const kw = 0.6, kh = 0.22, gx = 0.08, gy = 0.04;
     const gridW = 3 * kw + 2 * gx;
     const x0 = cx - gridW / 2 + kw / 2;
-    const y0 = cy - 0.04;
+    const y0 = cy - 0.02;
     keys.forEach((k, idx) => {
       const col = idx % 3, row = Math.floor(idx / 3);
       const x = x0 + col * (kw + gx);
@@ -333,41 +333,41 @@ const BombUI = (() => {
 
     // LEDの金属ベゼル（土台）
     const bezel = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.42, 0.46, 0.12, 28),
+      new THREE.CylinderGeometry(0.36, 0.4, 0.12, 28),
       new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.35 })
     );
     bezel.rotation.x = Math.PI / 2;
-    bezel.position.set(cx, cy + 0.48, EL_Z - 0.02); scene.add(bezel);
+    bezel.position.set(cx, cy + 0.4, EL_Z - 0.02); scene.add(bezel);
     // 黒いリング内側
     const socket = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.34, 0.34, 0.14, 28),
+      new THREE.CylinderGeometry(0.3, 0.3, 0.14, 28),
       new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.2, roughness: 0.8 })
     );
     socket.rotation.x = Math.PI / 2;
-    socket.position.set(cx, cy + 0.48, EL_Z); scene.add(socket);
+    socket.position.set(cx, cy + 0.4, EL_Z); scene.add(socket);
     // LED（ガラス球）
     const led = new THREE.Mesh(
-      new THREE.SphereGeometry(0.3, 28, 28),
+      new THREE.SphereGeometry(0.26, 28, 28),
       new THREE.MeshStandardMaterial({ color: 0x3a1a1a, emissive: 0x000000, roughness: 0.25, metalness: 0.0 })
     );
-    led.position.set(cx, cy + 0.5, EL_Z + 0.08); scene.add(led);
+    led.position.set(cx, cy + 0.42, EL_Z + 0.08); scene.add(led);
     mods[3].led = led;
 
     // 再生ボタン
-    const play = flatButton(cx, cy - 0.05, 1.9, 0.32, 0x2f3e2f, "▶ 再生");
+    const play = flatButton(cx, cy - 0.16, 1.9, 0.3, 0x2f3e2f, "▶ 再生");
     registerInteractive(play, "morse-play", 3, { pattern: puzzle.pattern });
 
     // CH ダイアル: [-] CHn [+]
-    const dn = flatButton(cx - 0.85, cy - 0.55, 0.42, 0.42, 0x444444, "−");
+    const dn = flatButton(cx - 0.85, cy - 0.56, 0.4, 0.4, 0x444444, "−");
     registerInteractive(dn, "morse-dn", 3);
-    const chLabel = makeLabel("CH 1", 0.9, 0.4, { bg: "#1a0a08", fg: "#ff8a4d", size: 130, font: "monospace" });
-    chLabel.mesh.position.set(cx, cy - 0.55, EL_Z + 0.02); scene.add(chLabel.mesh);
+    const chLabel = makeLabel("CH 1", 0.9, 0.36, { bg: "#1a0a08", fg: "#ff8a4d", size: 130, font: "monospace" });
+    chLabel.mesh.position.set(cx, cy - 0.56, EL_Z + 0.02); scene.add(chLabel.mesh);
     mods[3].ch = chLabel;
-    const up = flatButton(cx + 0.85, cy - 0.55, 0.42, 0.42, 0x444444, "＋");
+    const up = flatButton(cx + 0.85, cy - 0.56, 0.4, 0.4, 0x444444, "＋");
     registerInteractive(up, "morse-up", 3);
 
     // 送信
-    const sub = flatButton(cx, cy - 1.0, 1.8, 0.32, 0x1b5e25, "送信");
+    const sub = flatButton(cx, cy - 0.92, 1.8, 0.3, 0x1b5e25, "送信");
     registerInteractive(sub, "morse-submit", 3);
   }
 
@@ -429,7 +429,7 @@ const BombUI = (() => {
     });
 
     // 下段: 再生 / やり直し / 送信（横一列）
-    const rowY = cy - 0.9;
+    const rowY = cy - 0.84;
     const play = flatButton(cx - 0.95, rowY, 0.9, 0.28, 0x2f3e2f, "▶再生");
     registerInteractive(play, "simon-play", 4);
     const reset = flatButton(cx, rowY, 0.5, 0.28, 0x5a3a1f, "↺");
